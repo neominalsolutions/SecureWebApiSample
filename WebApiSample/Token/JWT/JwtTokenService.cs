@@ -12,7 +12,7 @@ namespace WebApiSample.Token.JWT
 {
   public class JwtTokenService : IAccessTokenService
   {
-    private const double EXPIRE_HOURS = 1.0;
+    private const double EXPIRE_MINUTES = 5;
 
     // 1 saatlik access token üreten servis
     public TokenResponseDto CreateAccessToken(ClaimsIdentity identity)
@@ -22,7 +22,7 @@ namespace WebApiSample.Token.JWT
       var descriptor = new SecurityTokenDescriptor
       {
         Subject = identity,
-        Expires = DateTime.UtcNow.AddHours(EXPIRE_HOURS),
+        Expires = DateTime.UtcNow.AddMinutes(EXPIRE_MINUTES),
         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512),
         //Audience = "www.client.com",
         //Issuer = "www.api.com"

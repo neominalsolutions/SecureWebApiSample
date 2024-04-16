@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using WebApiSample.Middlewares;
 using WebApiSample.Token.JWT;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,23 +18,32 @@ builder.Services.AddCors(crs =>
 {
   crs.AddPolicy("CorsPolicy", policy =>
   {
+    policy.SetIsOriginAllowed(_ => true);
     policy.AllowAnyHeader();
-    policy.AllowAnyOrigin();
-    policy.WithMethods("GET"); // DELETE, PUT, PATCH istekleri kapandý
+    //policy.AllowAnyOrigin();
+    policy.AllowAnyMethod();
+    policy.AllowCredentials();
+    // policy.WithMethods("GET","POST"); // DELETE, PUT, PATCH istekleri kapandý
     // Default GET ve POST isteklerine açýk
   });
 
-  //crs.AddDefaultPolicy(policy =>
-  //{
-  //  policy.AllowAnyHeader();
-  //  policy.AllowAnyMethod();
-  //  policy.AllowAnyOrigin();
-  //});
+});
+
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+  options.IdleTimeout = TimeSpan.FromMinutes(5);
+  options.Cookie.HttpOnly = true;
+  options.Cookie.IsEssential = true;
+  options.Cookie.SameSite = SameSiteMode.None;
+  options.Cookie.Path = "/";
+  options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
 var key = Encoding.ASCII.GetBytes(JWTSettings.SecretKey);
 
-
+builder.Services.AddAntiforgery(x => { x.HeaderName = "X-XSRF-TOKEN"; }); 
 
 
 // jwt ile kimlik doðrulamasý yapýlacak
@@ -48,9 +59,9 @@ builder.Services.AddAuthentication(x=>
   {
     ValidateIssuerSigningKey = true,
     IssuerSigningKey = new SymmetricSecurityKey(key),
-    ValidateIssuer = false, // token oluþturan sunucu, özel bir sunucu ve client göre token validation durumu varsa true yapýlýr.
-    ValidateAudience = false, // token gönderen client
-    ValidateLifetime = true // 1 saat boyunca sadece validate et, expire olmuþ tokenlarý validate etmez
+    ValidateIssuer = false,
+    ValidateAudience = false,
+    ValidateLifetime = true
   };
 });
 
@@ -72,29 +83,27 @@ app.UseHttpsRedirection();
 // app.UseCors(); // default olduðunda direk bunu çaðýralým
 app.UseCors("CorsPolicy");
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
 
-app.MapGet("/weatherforecast", () =>
-{
-  var forecast = Enumerable.Range(1, 5).Select(index =>
-      new WeatherForecast
-      (
-          DateTime.Now.AddDays(index),
-          Random.Shared.Next(-20, 55),
-          summaries[Random.Shared.Next(summaries.Length)]
-      ))
-      .ToArray();
-  return forecast;
-})
-.WithName("GetWeatherForecast");
+
+
 
 // gelen istekler artýk controller üzerindne yönetilsin
 app.MapControllers();
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<AntiForgeryGeneratorMiddleware>();
+app.UseMiddleware<AntiForgeryValidationMiddleware>();
+
+
+
+//app.Use(async (context, next) =>
+//{
+//  var tokens = antiforgery.GetAndStoreTokens(context);
+//  context.Response.Cookies.Append("CSRF-TOKEN", tokens.RequestToken, new CookieOptions { HttpOnly = false });
+
+//  await next();
+//});
 
 app.Run();
 
