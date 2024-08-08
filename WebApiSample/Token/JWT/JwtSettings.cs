@@ -7,6 +7,6 @@ namespace WebApiSample.Token.JWT
 {
     public static class JWTSettings
     {
-        public const string SecretKey = "marcy9d8534b48w951b9287d492b256x";
+        public const string SecretKey = "tGXQtanyYaJCxI3BseFJ3YZyEz_1m0twz0OcG6caJ8O4AraeWzhSR6X3TwC3xKTYGrxj8wshZ2MPz_lZU2oQPg";
     }
 }

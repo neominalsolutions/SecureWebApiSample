@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using WebApiSample.Middlewares;
@@ -14,20 +16,20 @@ builder.Services.AddControllers(); // api controller serviceleri ekledik.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // SPA uygulamalar api ile haberleþirken bu cors cross domain ayarlarýna ihtiyaç duyarlar eðer buraki ayarlar geçersiz ise api hata kodu döner.
-builder.Services.AddCors(crs =>
-{
-  crs.AddPolicy("CorsPolicy", policy =>
-  {
-    policy.SetIsOriginAllowed(_ => true);
-    policy.AllowAnyHeader();
-    //policy.AllowAnyOrigin();
-    policy.AllowAnyMethod();
-    policy.AllowCredentials();
-    // policy.WithMethods("GET","POST"); // DELETE, PUT, PATCH istekleri kapandý
-    // Default GET ve POST isteklerine açýk
-  });
+//builder.Services.AddCors(crs =>
+//{
+//  crs.AddPolicy("CorsPolicy", policy =>
+//  {
+//    policy.SetIsOriginAllowed(_ => true);
+//    policy.AllowAnyHeader();
+//    //policy.AllowAnyOrigin();
+//    policy.AllowAnyMethod();
+//    policy.AllowCredentials();
+//    // policy.WithMethods("GET","POST"); // DELETE, PUT, PATCH istekleri kapandý
+//    // Default GET ve POST isteklerine açýk
+//  });
 
-});
+//});
 
 builder.Services.AddDistributedMemoryCache();
 
@@ -63,6 +65,18 @@ builder.Services.AddAuthentication(x=>
     ValidateAudience = false,
     ValidateLifetime = true
   };
+
+  opt.Events = new JwtBearerEvents()
+  {
+    OnAuthenticationFailed = c =>
+    {
+      return Task.CompletedTask;
+    },
+    OnTokenValidated = c =>
+    {
+      return Task.CompletedTask;
+    }
+  };
 });
 
 builder.Services.AddAuthorization();
@@ -80,20 +94,22 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<AuthenticationMiddleware>();
+
 // app.UseCors(); // default olduðunda direk bunu çaðýralým
-app.UseCors("CorsPolicy");
+//app.UseCors("CorsPolicy");
 
 
 
 
 
 // gelen istekler artýk controller üzerindne yönetilsin
-app.MapControllers();
-app.UseSession();
-app.UseAuthentication();
+
+//app.UseAuthentication();
+
 app.UseAuthorization();
-app.UseMiddleware<AntiForgeryGeneratorMiddleware>();
-app.UseMiddleware<AntiForgeryValidationMiddleware>();
+//app.UseMiddleware<AntiForgeryGeneratorMiddleware>();
+//app.UseMiddleware<AntiForgeryValidationMiddleware>();
 
 
 
@@ -104,7 +120,8 @@ app.UseMiddleware<AntiForgeryValidationMiddleware>();
 
 //  await next();
 //});
-
+app.UseSession();
+app.MapControllers();
 app.Run();
 
 internal record WeatherForecast(DateTime Date, int TemperatureC, string? Summary)
