@@ -22,7 +22,7 @@ builder.Services.AddSwaggerGen();
 //  {
 //    policy.SetIsOriginAllowed(_ => true);
 //    policy.AllowAnyHeader();
-//    //policy.AllowAnyOrigin();
+//    policy.WithOrigins("*"); // bude baþka sýkýntý
 //    policy.AllowAnyMethod();
 //    policy.AllowCredentials();
 //    // policy.WithMethods("GET","POST"); // DELETE, PUT, PATCH istekleri kapandý
@@ -36,9 +36,9 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
   options.IdleTimeout = TimeSpan.FromMinutes(5);
-  options.Cookie.HttpOnly = true;
+  options.Cookie.HttpOnly = true; // JS okunmaz veya deðiþtirilemez.
   options.Cookie.IsEssential = true;
-  options.Cookie.SameSite = SameSiteMode.None;
+  options.Cookie.SameSite = SameSiteMode.Strict; // Same Site.
   options.Cookie.Path = "/";
   options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
@@ -70,10 +70,12 @@ builder.Services.AddAuthentication(x=>
   {
     OnAuthenticationFailed = c =>
     {
+      // Güvenlik Log tutalým
       return Task.CompletedTask;
     },
     OnTokenValidated = c =>
     {
+      // Token validate olduðunda önemli.
       return Task.CompletedTask;
     }
   };
@@ -94,13 +96,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseMiddleware<AuthenticationMiddleware>();
+//app.UseMiddleware<AuthenticationMiddleware>();
 
 // app.UseCors(); // default olduðunda direk bunu çaðýralým
 //app.UseCors("CorsPolicy");
 
 
-
+// Security Headers tanýmý.
+app.Use(async (context, next) =>
+{
+  context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+  await next();
+}); 
 
 
 // gelen istekler artýk controller üzerindne yönetilsin

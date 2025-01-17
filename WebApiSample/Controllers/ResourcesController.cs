@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ namespace WebApiSample.Controllers
 {
   [Route("api/[controller]")]
   [ApiController]
+  //[EnableCors("CorsPolicy")]
   //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
   [Authorize]
   //[Authorize(AuthenticationSchemes = "Basic")]
