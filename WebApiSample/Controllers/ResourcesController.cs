@@ -10,9 +10,8 @@ namespace WebApiSample.Controllers
   [Route("api/[controller]")]
   [ApiController]
   //[EnableCors("CorsPolicy")]
-  //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-  [Authorize]
-  //[Authorize(AuthenticationSchemes = "Basic")]
+  [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+
   public class ResourcesController : ControllerBase
   {
     private readonly IAntiforgery antiforgery;
@@ -29,6 +28,7 @@ namespace WebApiSample.Controllers
     }
 
     [HttpPost]
+    [EnableCors("CorsPolicy2")]
     public IActionResult PostDemo()
     {
 

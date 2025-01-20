@@ -16,20 +16,34 @@ builder.Services.AddControllers(); // api controller serviceleri ekledik.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // SPA uygulamalar api ile haberleþirken bu cors cross domain ayarlarýna ihtiyaç duyarlar eðer buraki ayarlar geçersiz ise api hata kodu döner.
-//builder.Services.AddCors(crs =>
-//{
-//  crs.AddPolicy("CorsPolicy", policy =>
-//  {
-//    policy.SetIsOriginAllowed(_ => true);
-//    policy.AllowAnyHeader();
-//    policy.WithOrigins("*"); // bude baþka sýkýntý
-//    policy.AllowAnyMethod();
-//    policy.AllowCredentials();
-//    // policy.WithMethods("GET","POST"); // DELETE, PUT, PATCH istekleri kapandý
-//    // Default GET ve POST isteklerine açýk
-//  });
+builder.Services.AddCors(crs =>
+{
+  crs.AddPolicy("CorsPolicy1", policy =>
+  {
+   
+    policy.AllowAnyHeader();
+    policy.AllowAnyOrigin(); // bude baþka sýkýntý
+    policy.AllowAnyMethod();
+    //policy.AllowCredentials();
+  });
 
-//});
+  crs.AddPolicy("CorsPolicy2", policy =>
+  {
+
+    policy.WithHeaders("X-Content-Type");
+    policy.WithOrigins("https://www.a.com"); // bude baþka sýkýntý
+    policy.AllowAnyMethod();
+    //policy.AllowCredentials();
+  });
+
+});
+
+builder.Services.AddCookiePolicy(x =>
+{
+  x.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
+  x.Secure = CookieSecurePolicy.Always;
+
+});
 
 builder.Services.AddDistributedMemoryCache();
 
@@ -99,7 +113,7 @@ app.UseHttpsRedirection();
 //app.UseMiddleware<AuthenticationMiddleware>();
 
 // app.UseCors(); // default olduðunda direk bunu çaðýralým
-//app.UseCors("CorsPolicy");
+app.UseCors("CorsPolicy");
 
 
 // Security Headers tanýmý.

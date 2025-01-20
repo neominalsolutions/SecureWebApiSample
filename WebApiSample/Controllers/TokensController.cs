@@ -35,8 +35,8 @@ namespace WebApiSample.Controllers
         var claims = new List<Claim>();
         claims.Add(new Claim("sub", "c8305644-94ef-4e73-8021-3fb0b97c7ba0"));
         claims.Add(new Claim("username", "test@test.com"));
-        claims.Add(new Claim("roles", "Admin,Manager"));
-        claims.Add(new Claim("permissions", "CreateUser,ApproveOrder"));
+        //claims.Add(new Claim("roles", "Admin,Manager"));
+        //claims.Add(new Claim("permissions", "CreateUser,ApproveOrder"));
 
         var identity = new ClaimsIdentity(claims);
         var tokenResponse = this.tokenService.CreateAccessToken(identity);
